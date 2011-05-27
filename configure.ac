@@ -1,0 +1,21 @@
+AC_PREREQ(2.52)
+AC_INIT(libealarm, 0.1, http://www.meego.com)
+AC_CONFIG_SRCDIR(alarm-notify.c)
+AC_CONFIG_HEADERS([config.h])
+AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
+
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+
+AC_PROG_CPP
+AC_PROG_CC
+AM_PROG_CC_C_O
+AC_PROG_LIBTOOL
+
+GNOME_COMPILE_WARNINGS
+
+PKG_CHECK_MODULES(ECAL, glib-2.0 libedataserver-1.2 libecal-1.2)
+AC_DEFINE(HANDLE_LIBICAL_MEMORY, 1, [we free libical memory])
+
+AC_OUTPUT([
+Makefile
+])
