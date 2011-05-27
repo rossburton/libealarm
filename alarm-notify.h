@@ -59,7 +59,8 @@ struct _AlarmNotify {
 };
 
 struct _AlarmNotifyClass {
-	GObjectClass parent_class;
+  GObjectClass parent_class;
+  void (*alarm) (AlarmNotify *notify, ECalComponent *comp);
 };
 
 GType		alarm_notify_get_type		(void);

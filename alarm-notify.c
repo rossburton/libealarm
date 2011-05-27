@@ -247,7 +247,8 @@ alarm_notify_class_init (AlarmNotifyClass *class)
           g_signal_new ("alarm",
                         G_TYPE_FROM_CLASS (class),
                         G_SIGNAL_RUN_FIRST,
-                        0, NULL, NULL,
+                        G_STRUCT_OFFSET (AlarmNotifyClass, alarm),
+                        NULL, NULL,
                         g_cclosure_marshal_VOID__OBJECT,
                         G_TYPE_NONE, 1, E_TYPE_CAL_COMPONENT);
 }
