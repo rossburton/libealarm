@@ -1,0 +1,6 @@
+libealarm
+---
+
+A basic helper library to assist in writing alarm notifications for libecal.
+It's basically the Evolution alarm-daemon with the GUI bits ripped out.  Over
+time hopefully it will get better!
