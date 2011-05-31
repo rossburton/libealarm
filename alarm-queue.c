@@ -249,6 +249,7 @@ lookup_client (ECal *client)
 	return g_hash_table_lookup (client_alarms_hash, client);
 }
 
+#if 0
 /* Looks up a queued alarm based on its alarm ID */
 static QueuedAlarm *
 lookup_queued_alarm (CompQueuedAlarms *cqa, gpointer alarm_id)
@@ -267,6 +268,7 @@ lookup_queued_alarm (CompQueuedAlarms *cqa, gpointer alarm_id)
 	/* not found, might have been updated/removed */
 	return NULL;
 }
+#endif
 
 /* Removes an alarm from the list of alarms of a component.  If the alarm was
  * the last one listed for the component, it removes the component itself.
