@@ -614,28 +614,8 @@ remove_comp (ClientAlarms *ca, ECalComponentId *id)
 	remove_alarms (cqa, TRUE);
 }
 
-/* Called when a calendar component changes; we must reload its corresponding
- * alarms.
- */
-struct _query_msg {
-	Message header;
-	GList *objects;
-	gpointer data;
-};
-
-static GList *
-duplicate_ical (GList *in_list)
-{
-	GList *l, *out_list = NULL;
-	for (l = in_list; l; l = l->next) {
-		out_list = g_list_prepend (out_list, icalcomponent_new_clone (l->data));
-	}
-
-	return g_list_reverse (out_list);
-}
-
 static void
-query_objects_changed_async (struct _query_msg *msg)
+query_objects_changed_cb (ECal *client, GList *objects, gpointer data)
 {
 	ClientAlarms *ca;
 	time_t from, day_end;
@@ -644,10 +624,8 @@ query_objects_changed_async (struct _query_msg *msg)
 	icaltimezone *zone;
 	CompQueuedAlarms *cqa;
 	GList *l;
-	GList *objects;
 
-	ca = msg->data;
-	objects = msg->objects;
+	ca = data;
 
 	from = config_data_get_last_notification_time (ca->client);
 	if (from == -1)
@@ -743,22 +721,6 @@ EMIT SIGNAL
 		g_object_unref (comp);
 		comp = NULL;
 	}
-	g_list_free (objects);
-
-	g_slice_free (struct _query_msg, msg);
-}
-
-static void
-query_objects_changed_cb (ECal *client, GList *objects, gpointer data)
-{
-	struct _query_msg *msg;
-
-	msg = g_slice_new0 (struct _query_msg);
-	msg->header.func = (MessageFunc) query_objects_changed_async;
-	msg->objects = duplicate_ical (objects);
-	msg->data = data;
-
-	message_push ((Message *) msg);
 }
 
 /* Called when a calendar component is removed; we must delete its corresponding
