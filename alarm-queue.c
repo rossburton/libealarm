@@ -629,7 +629,7 @@ query_objects_changed_cb (ECal *client, GList *objects, gpointer data)
 		GSList *sl;
 		ECalComponent *comp = e_cal_component_new ();
 
-		e_cal_component_set_icalcomponent (comp, l->data);
+		e_cal_component_set_icalcomponent (comp, icalcomponent_new_clone (l->data));
 
 		id = e_cal_component_get_id (comp);
 		found = e_cal_get_alarms_for_object (ca->client, id, from, day_end, &alarms);
@@ -881,45 +881,6 @@ struct _alarm_client_msg {
 	ECal *client;
 };
 
-static void
-alarm_queue_add_async (struct _alarm_client_msg *msg)
-{
-	ClientAlarms *ca;
-	ECal *client = msg->client;
-
-	g_return_if_fail (alarm_queue_inited);
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CAL (client));
-
-	ca = lookup_client (client);
-	if (ca) {
-		/* We already have it. Unref the passed one*/
-		g_object_unref(client);
-		return;
-	}
-
-	d(printf("%s:%d (alarm_queue_add_async) - %p\n",__FILE__, __LINE__, client));
-
-	ca = g_new (ClientAlarms, 1);
-
-	ca->client = client;
-	ca->query = NULL;
-
-	g_hash_table_insert (client_alarms_hash, client, ca);
-
-	ca->uid_alarms_hash = g_hash_table_new ((GHashFunc) hash_ids, (GEqualFunc) compare_ids);
-
-	if (e_cal_get_load_state (client) == E_CAL_LOAD_LOADED) {
-		load_alarms_for_today (ca);
-	} else {
-		g_signal_connect (client, "cal_opened_ex",
-				  G_CALLBACK (cal_opened_cb),
-				  ca);
-	}
-
-	g_slice_free (struct _alarm_client_msg, msg);
-}
-
 /**
  * alarm_queue_add_client:
  * @client: A calendar client.
@@ -937,13 +898,36 @@ alarm_queue_add_async (struct _alarm_client_msg *msg)
 void
 alarm_queue_add_client (ECal *client)
 {
-	struct _alarm_client_msg *msg;
+	ClientAlarms *ca;
 
-	msg = g_slice_new0 (struct _alarm_client_msg);
-	msg->header.func = (MessageFunc) alarm_queue_add_async;
-	msg->client = g_object_ref (client);
+	g_return_if_fail (alarm_queue_inited);
+	g_return_if_fail (client != NULL);
+	g_return_if_fail (E_IS_CAL (client));
 
-	message_push ((Message *) msg);
+	ca = lookup_client (client);
+	if (ca) {
+		/* We already have it. */
+		return;
+	}
+
+	d(printf("%s:%d (alarm_queue_add_client) - %p\n",__FILE__, __LINE__, client));
+
+	ca = g_new (ClientAlarms, 1);
+
+	ca->client = g_object_ref (client);
+	ca->query = NULL;
+
+	g_hash_table_insert (client_alarms_hash, client, ca);
+
+	ca->uid_alarms_hash = g_hash_table_new ((GHashFunc) hash_ids, (GEqualFunc) compare_ids);
+
+	if (e_cal_get_load_state (client) == E_CAL_LOAD_LOADED) {
+		load_alarms_for_today (ca);
+	} else {
+		g_signal_connect (client, "cal_opened_ex",
+				  G_CALLBACK (cal_opened_cb),
+				  ca);
+	}
 }
 
 /* Removes a component an its alarms */
