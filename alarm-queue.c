@@ -632,22 +632,6 @@ duplicate_ical (GList *in_list)
 	return g_list_reverse (out_list);
 }
 
-static GList *
-duplicate_ecal (GList *in_list)
-{
-	GList *l, *out_list = NULL;
-	for (l = in_list; l; l = l->next) {
-		ECalComponentId *id, *old;
-		old = l->data;
-		id = g_new0 (ECalComponentId, 1);
-		id->uid = g_strdup (old->uid);
-		id->rid = g_strdup (old->rid);
-		out_list = g_list_prepend (out_list, id);
-	}
-
-	return g_list_reverse (out_list);
-}
-
 static void
 query_objects_changed_async (struct _query_msg *msg)
 {
@@ -779,16 +763,14 @@ query_objects_changed_cb (ECal *client, GList *objects, gpointer data)
  * alarms.
  */
 static void
-query_objects_removed_async (struct _query_msg *msg)
+query_objects_removed_cb (ECal *client, GList *objects, gpointer data)
 {
 	ClientAlarms *ca;
 	GList *l;
-	GList *objects;
 
-	ca = msg->data;
-	objects = msg->objects;
+	ca = data;
 
-	d(printf("%s:%d (query_objects_removed_async) - Removing %d objects\n",__FILE__, __LINE__, g_list_length(objects)));
+	d(printf("%s:%d (query_objects_removed_cb) - Removing %d objects\n",__FILE__, __LINE__, g_list_length (objects)));
 
 	for (l = objects; l != NULL; l = l->next) {
 		/* If the alarm is already triggered remove it. */
@@ -798,27 +780,8 @@ EMIT SIGNAL
 #endif
 		remove_comp (ca, l->data);
 		g_hash_table_remove (ca->uid_alarms_hash, l->data);
-		e_cal_component_free_id (l->data);
 	}
-
-	g_list_free (objects);
-
-	g_slice_free (struct _query_msg, msg);
 }
-
-static void
-query_objects_removed_cb (ECal *client, GList *objects, gpointer data)
-{
-	struct _query_msg *msg;
-
-	msg = g_slice_new0 (struct _query_msg);
-	msg->header.func = (MessageFunc) query_objects_removed_async;
-	msg->objects = duplicate_ecal (objects);
-	msg->data = data;
-
-	message_push ((Message *) msg);
-}
-
 
 static gboolean
 check_midnight_refresh (gpointer user_data)
