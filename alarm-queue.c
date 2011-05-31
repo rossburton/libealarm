@@ -124,22 +124,7 @@ struct _Message {
 	MessageFunc func;
 };
 
-/*
-static void
-message_proxy (Message *msg)
-{
-	g_return_if_fail (msg->func != NULL);
-
-	msg->func (msg);
-}
-
-static gpointer
-create_thread_pool (void)
-{
-	return g_thread_pool_new ((GFunc) message_proxy, NULL, 1, FALSE, NULL);
-}*/
-
-static void
+G_GNUC_DEPRECATED static void
 message_push (Message *msg)
 {
 	/* This used be pushed through the thread pool. This fix is made to work-around
