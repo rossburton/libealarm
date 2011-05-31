@@ -32,8 +32,7 @@
 #include <libecal/e-cal-time-util.h>
 #include <libecal/e-cal-component.h>
 
-#include <libealarm/alarm.h>
-
+#include "alarm.h"
 #include "alarm-notify.h"
 #include "alarm-queue.h"
 #include "config-data.h"
