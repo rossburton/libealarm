@@ -115,25 +115,6 @@ static void update_qa (ECalComponentAlarms *alarms, QueuedAlarm *qa);
 static void load_alarms_for_today (ClientAlarms *ca);
 static void midnight_refresh_cb (gpointer alarm_id, time_t trigger, gpointer data);
 
-/* Simple asynchronous message dispatcher */
-
-typedef struct _Message Message;
-typedef void (*MessageFunc) (Message *msg);
-
-struct _Message {
-	MessageFunc func;
-};
-
-G_GNUC_DEPRECATED static void
-message_push (Message *msg)
-{
-	/* This used be pushed through the thread pool. This fix is made to work-around
-	the crashers in dbus due to threading. The threading is not completely removed as
-	its better to have alarm daemon running in a thread rather than blocking main thread.
-	 This is the reason the creation of thread pool is commented out */
-	msg->func (msg);
-}
-
 /*
  * use a static ring-buffer so we can call this twice
  * in a printf without getting nonsense results.
