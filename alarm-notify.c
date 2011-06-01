@@ -207,7 +207,7 @@ static void
 alarm_notify_dequeue_client (gpointer key,
                              ECal *client)
 {
-	alarm_queue_remove_client (client, TRUE);
+	alarm_queue_remove_client (client);
 }
 
 static void
@@ -403,7 +403,7 @@ alarm_notify_remove_calendar (AlarmNotify *an, ECalSourceType source_type, const
 	client = g_hash_table_lookup (priv->uri_client_hash[source_type], str_uri);
 	if (client) {
 		d (printf("%s:%d (alarm_notify_remove_calendar) - Removing Client %p\n", __FILE__, __LINE__, client));
-		alarm_queue_remove_client (client, FALSE);
+		alarm_queue_remove_client (client);
 		g_hash_table_remove (priv->uri_client_hash[source_type], str_uri);
 	}
 }

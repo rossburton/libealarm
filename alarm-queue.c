@@ -876,11 +876,6 @@ hash_ids (gpointer a)
 	return g_str_hash (id->uid);
 }
 
-struct _alarm_client_msg {
-	Message header;
-	ECal *client;
-};
-
 /**
  * alarm_queue_add_client:
  * @client: A calendar client.
@@ -971,17 +966,17 @@ remove_client_alarms (ClientAlarms *ca)
 	g_return_if_fail (g_hash_table_size (ca->uid_alarms_hash) == 0);
 }
 
-/**
- * alarm_queue_remove_client:
- * @client: A calendar client.
+/** alarm_queue_remove_client
  *
- * Removes a calendar client from the alarm queueing system.
- **/
-static void
-alarm_queue_remove_async (struct _alarm_client_msg *msg)
+ * asynchronously remove client from alarm queue.
+ * @param client Client to remove.
+ * @param immediately Indicates whether use thread or do it right now.
+ */
+
+void
+alarm_queue_remove_client (ECal *client)
 {
 	ClientAlarms *ca;
-	ECal *client = msg->client;
 
 	g_return_if_fail (alarm_queue_inited);
 	g_return_if_fail (client != NULL);
@@ -1018,30 +1013,6 @@ alarm_queue_remove_async (struct _alarm_client_msg *msg)
 	g_free (ca);
 
 	g_hash_table_remove (client_alarms_hash, client);
-
-	g_slice_free (struct _alarm_client_msg, msg);
-}
-
-/** alarm_queue_remove_client
- *
- * asynchronously remove client from alarm queue.
- * @param client Client to remove.
- * @param immediately Indicates whether use thread or do it right now.
- */
-
-void
-alarm_queue_remove_client (ECal *client, gboolean immediately)
-{
-	struct _alarm_client_msg *msg;
-
-	msg = g_slice_new0 (struct _alarm_client_msg);
-	msg->header.func = (MessageFunc) alarm_queue_remove_async;
-	msg->client = client;
-
-	if (immediately) {
-		alarm_queue_remove_async (msg);
-	} else
-		message_push ((Message *) msg);
 }
 
 /* Update non-time related variables for various structures on modification of an existing component
