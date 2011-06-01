@@ -75,6 +75,10 @@ void		alarm_notify_remove_calendar	(AlarmNotify *an,
 ESourceList *	alarm_notify_get_selected_calendars
 						(AlarmNotify *an);
 
+/*
+ * Internal API
+ */
+
 void alarm_notify_has_alarms (AlarmNotify *an, gboolean has_alarms);
 
 void alarm_notify_emit_alarm (AlarmNotify *an, time_t trigger, ECalComponent *comp);
