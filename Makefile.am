@@ -26,7 +26,7 @@ test_alarm_SOURCES = test-alarm.c
 test_alarm_CFLAGS = \
 	$(AM_CPPFLAGS) \
 	$(ECAL_CFLAGS)
-test_alarm_LDFLAGS = \
+test_alarm_LDADD = \
 	libealarm.la \
 	$(ECAL_LIBS)
 
