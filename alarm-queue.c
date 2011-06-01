@@ -207,14 +207,9 @@ add_client_alarms_cb (gpointer key, gpointer value, gpointer data)
 	load_alarms_for_today (ca);
 }
 
-struct _midnight_refresh_msg {
-	Message header;
-	gboolean remove;
-};
-
 /* Loads the alarms for the new day every midnight */
 static void
-midnight_refresh_async (struct _midnight_refresh_msg *msg)
+do_midnight_refresh (gboolean remove)
 {
 	d(printf("%s:%d (midnight_refresh_async) \n",__FILE__, __LINE__));
 
@@ -222,27 +217,19 @@ midnight_refresh_async (struct _midnight_refresh_msg *msg)
 	g_hash_table_foreach (client_alarms_hash, add_client_alarms_cb, NULL);
 
 	/* Re-schedule the midnight update */
-	if (msg->remove && midnight_refresh_id != NULL) {
+	if (remove && midnight_refresh_id != NULL) {
 		d(printf("%s:%d (midnight_refresh_async) - Reschedule the midnight update \n",__FILE__, __LINE__));
 		e_alarm_remove (midnight_refresh_id);
 		midnight_refresh_id = NULL;
 	}
 
 	queue_midnight_refresh ();
-
-	g_slice_free (struct _midnight_refresh_msg, msg);
 }
 
 static void
 midnight_refresh_cb (gpointer alarm_id, time_t trigger, gpointer data)
 {
-	struct _midnight_refresh_msg *msg;
-
-	msg = g_slice_new0 (struct _midnight_refresh_msg);
-	msg->header.func = (MessageFunc) midnight_refresh_async;
-	msg->remove = TRUE;
-
-	message_push ((Message *) msg);
+	do_midnight_refresh (TRUE);
 }
 
 /* Looks up a client in the client alarms hash table */
@@ -766,13 +753,7 @@ check_midnight_refresh (gpointer user_data)
 	new_midnight = time_day_end_with_zone (time (NULL), zone);
 
 	if (new_midnight > midnight) {
-		struct _midnight_refresh_msg *msg;
-
-		msg = g_slice_new0 (struct _midnight_refresh_msg);
-		msg->header.func = (MessageFunc) midnight_refresh_async;
-		msg->remove = FALSE;
-
-		message_push ((Message *) msg);
+		do_midnight_refresh (FALSE);
 	}
 
 	return TRUE;
