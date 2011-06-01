@@ -40,8 +40,12 @@ enum {
   ALARM,
   LAST_SIGNAL
 };
-
 static guint signals[LAST_SIGNAL];
+
+enum {
+  PROP_0,
+  PROP_HAS_ALARM
+};
 
 #define ALARM_NOTIFY_GET_PRIVATE(obj) \
 	(G_TYPE_INSTANCE_GET_PRIVATE \
@@ -55,6 +59,7 @@ struct _AlarmNotifyPrivate {
         ESourceList *source_lists[E_CAL_SOURCE_TYPE_LAST];
 	ESourceList *selected_calendars;
         GMutex *mutex;
+	gboolean cached_alarms;
 };
 
 typedef struct {
@@ -211,6 +216,25 @@ alarm_notify_dequeue_client (gpointer key,
 }
 
 static void
+alarm_notify_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
+{
+  AlarmNotify *an;
+  AlarmNotifyPrivate *priv;
+
+  an = ALARM_NOTIFY (object);
+  priv = an->priv;
+
+  switch (prop_id) {
+  case PROP_HAS_ALARM:
+    g_value_set_boolean (value, priv->cached_alarms);
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    break;
+  }
+}
+
+static void
 alarm_notify_finalize (GObject *object)
 {
 	AlarmNotifyPrivate *priv;
@@ -241,6 +265,7 @@ alarm_notify_class_init (AlarmNotifyClass *class)
 	g_type_class_add_private (class, sizeof (AlarmNotifyPrivate));
 
 	object_class = (GObjectClass *) class;
+        object_class->get_property = alarm_notify_get_property;
 	object_class->finalize = alarm_notify_finalize;
 
 	signals[ALARM] =
@@ -251,6 +276,12 @@ alarm_notify_class_init (AlarmNotifyClass *class)
                         NULL, NULL,
                         g_cclosure_marshal_VOID__OBJECT,
                         G_TYPE_NONE, 1, E_TYPE_CAL_COMPONENT);
+
+        g_object_class_install_property (object_class, PROP_HAS_ALARM,
+                                         g_param_spec_boolean ("has-alarm", "has-alarm",
+                                                               "If there is an alarm set",
+                                                               FALSE,
+                                                               G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -412,4 +443,18 @@ void
 alarm_notify_emit_alarm (AlarmNotify *an, time_t trigger, ECalComponent *comp)
 {
   g_signal_emit (an, signals[ALARM], 0, comp);
+}
+
+void
+alarm_notify_has_alarms (AlarmNotify *an, gboolean has_alarms)
+{
+  AlarmNotifyPrivate *priv;
+
+  priv = an->priv;
+
+  if (priv->cached_alarms != has_alarms) {
+    priv->cached_alarms = has_alarms;
+
+    g_object_notify (G_OBJECT (an), "has-alarm");
+  }
 }

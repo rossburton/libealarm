@@ -44,7 +44,7 @@ static AlarmNotify *an;
 /* Whether the queueing system has been initialized */
 static gboolean alarm_queue_inited = FALSE;
 
-/* Clients we are monitoring for alarms */
+/* Clients we are monitoring for alarms.  ECal -> ClientAlarm. */
 static GHashTable *client_alarms_hash = NULL;
 
 /* Structure that stores a client we are monitoring */
@@ -151,6 +151,24 @@ e_ctime (const time_t *timep)
 	next = 0;
 
   return ret;
+}
+
+static void
+calculate_has_alarm (void)
+{
+	GHashTableIter iter;
+	ClientAlarms *ca = NULL;
+	gboolean alarms = FALSE;
+
+	g_hash_table_iter_init (&iter, client_alarms_hash);
+	while (g_hash_table_iter_next (&iter, NULL, (gpointer *)&ca)) {
+		if (g_hash_table_size (ca->uid_alarms_hash) > 0) {
+			alarms = TRUE;
+			break;
+		}
+	}
+
+	alarm_notify_has_alarms (an, alarms);
 }
 
 /* Queues an alarm trigger for midnight so that we can load the next day's worth
@@ -706,6 +724,8 @@ EMIT SIGNAL
 		g_object_unref (comp);
 		comp = NULL;
 	}
+
+	calculate_has_alarm ();
 }
 
 /* Called when a calendar component is removed; we must delete its corresponding
@@ -730,6 +750,8 @@ EMIT SIGNAL
 		remove_comp (ca, l->data);
 		g_hash_table_remove (ca->uid_alarms_hash, l->data);
 	}
+
+	calculate_has_alarm ();
 }
 
 static gboolean
