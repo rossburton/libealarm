@@ -1,5 +1,5 @@
 AC_PREREQ(2.52)
-AC_INIT(libealarm, 0.2, http://www.meego.com)
+AC_INIT(libealarm, 0.3, http://www.meego.com)
 AC_CONFIG_SRCDIR(alarm-notify.c)
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
