@@ -20,6 +20,9 @@ libealarm_la_LDFLAGS = $(NO_UNDEFINED)
 libealarmincludedir = $(includedir)/ealarm
 libealarminclude_HEADERS = alarm-notify.h
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libealarm.pc
+EXTRA_DIST = $(pkgconfig_DATA:.pc=.pc.in)
 
 noinst_PROGRAMS = test-alarm
 test_alarm_SOURCES = test-alarm.c

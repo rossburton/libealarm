@@ -18,4 +18,5 @@ AC_DEFINE(HANDLE_LIBICAL_MEMORY, 1, [we free libical memory])
 
 AC_OUTPUT([
 Makefile
+libealarm.pc
 ])

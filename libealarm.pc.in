@@ -1,0 +1,9 @@
+prefix=@prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libelarm
+Description: EDS Alarm Notification Library
+Version: @VERSION@
+Cflags: -I${includedir}
+Libs: -L${libdir} -lealarm
